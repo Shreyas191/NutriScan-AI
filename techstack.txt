@@ -1,0 +1,290 @@
+TECH STACK – NutriScan AI (Cart Redirect Model)
+
+Frontend
+
+Framework: Next.js 14 (App Router)
+Language: TypeScript
+Styling: Tailwind CSS
+
+Why:
+
+Modern full-stack React framework
+
+Excellent performance
+
+Easy deployment
+
+Works seamlessly with auth
+
+Simple API route handling if needed
+
+Hosting:
+
+Vercel (Free Tier)
+
+Backend
+
+Framework: FastAPI (Python)
+Server: Uvicorn
+
+Why:
+
+Strong AI ecosystem
+
+Async support
+
+Automatic API docs
+
+Clean architecture
+
+Easy OpenAI + OCR integration
+
+Hosting:
+
+Render (Free Tier)
+OR
+
+Railway (Free Tier)
+
+Database
+
+Primary DB:
+
+Supabase PostgreSQL (Free Tier)
+
+Used for:
+
+User accounts (if not fully handled by Clerk)
+
+Lab report metadata
+
+Extracted biomarker values
+
+Deficiency history
+
+Analytics tracking
+
+ORM:
+
+SQLAlchemy
+
+Migrations:
+
+Alembic
+
+File Storage (Bloodwork PDFs)
+
+Service:
+
+Supabase Storage (Free Tier)
+
+Flow:
+Frontend → Upload PDF → Supabase Storage
+Backend → Fetch file → OCR processing
+
+OCR Layer
+
+Primary:
+
+Tesseract (Self-hosted in backend container)
+
+Why:
+
+Free
+
+No external API cost
+
+Works well for MVP
+
+Upgrade Option:
+
+Google Vision API (later for higher accuracy)
+
+AI & Extraction Layer
+
+Provider:
+
+OpenAI API
+
+Used for:
+
+Extracting structured biomarker JSON
+
+Generating plain-English explanation
+
+Creating food recommendations
+
+Pipeline:
+PDF → OCR → Raw Text → OpenAI → Structured JSON → Rule Engine
+
+Deficiency Detection Engine
+
+Implementation:
+
+Pure Python logic
+
+Threshold-based classification
+
+Pydantic validation models
+
+Example:
+If vitamin_d < 20 → Severe Deficiency
+
+This layer:
+
+Converts lab values → severity → intake recommendation
+
+Grocery Integration (Cart Redirect Model)
+
+No official Instacart API required.
+
+Instead:
+
+Backend generates:
+
+List of recommended grocery items
+
+Frontend constructs:
+
+Dynamic Instacart search URLs
+
+Example logic:
+User clicks “Shop for Vitamin D Foods”
+
+Redirect to:
+Instacart search query like:
+“salmon + fortified milk + vitamin d3 supplement”
+
+Flow:
+Deficiency → Food List → Query Builder → Instacart Search URL → Redirect
+
+Advantages:
+
+No approval required
+
+No API keys
+
+No commercial agreement
+
+Very fast to implement
+
+Safe MVP validation
+
+Authentication
+
+Primary:
+
+Clerk (Free Tier)
+
+Why:
+
+Easy Next.js integration
+
+Secure session management
+
+JWT support for backend validation
+
+Alternative:
+
+Supabase Auth (if reducing services)
+
+Monitoring & Error Tracking
+
+Service:
+
+Sentry (Free Tier)
+
+Tracks:
+
+Backend crashes
+
+Frontend errors
+
+Performance metrics
+
+DevOps
+
+Version Control:
+
+GitHub
+
+CI/CD:
+
+GitHub Actions (Free)
+
+Containerization:
+
+Docker (for FastAPI backend)
+
+Architecture Overview
+
+Frontend (Next.js on Vercel)
+
+↓
+
+Backend (FastAPI on Render/Railway)
+
+↓
+
+Supabase:
+
+PostgreSQL
+
+Storage
+
+↓
+
+Tesseract OCR
+
+↓
+
+OpenAI API
+
+↓
+
+Rule Engine
+
+↓
+
+Instacart Search Redirect
+
+Estimated Monthly Cost (MVP)
+
+Vercel: Free
+Render/Railway: Free
+Supabase: Free
+Tesseract: Free
+Clerk: Free
+Sentry: Free
+OpenAI: Usage-based
+
+Expected total: Under $20/month depending on AI usage.
+
+Why This Stack Is Better for MVP
+
+No Instacart approval required
+
+No third-party scraper risk
+
+Fully free-tier compatible
+
+Faster to build
+
+Legally safer
+
+Easy to upgrade later
+
+Upgrade Path (When You Scale)
+
+Step 1:
+Apply for official Instacart Developer Platform
+
+Step 2:
+Replace redirect logic with real cart creation API
+
+Step 3:
+Move backend to AWS (HIPAA-ready infra)
+
+Final Stack Summary:
+
+Next.js + FastAPI + Supabase + Supabase Storage + Tesseract + OpenAI + Instacart Redirect + Clerk + Vercel + Render

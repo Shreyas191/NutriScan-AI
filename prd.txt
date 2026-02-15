@@ -1,0 +1,326 @@
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+
+Product Name: NutriScan AI
+Tagline: “From Bloodwork to Basket — Automatically.”
+
+Executive Summary
+
+NutriScan AI is an AI-powered health assistant that transforms uploaded bloodwork reports into actionable nutrition decisions. Users upload a lab report (PDF), the system detects deficiencies (e.g., Vitamin D), explains them in plain English, and automatically generates a grocery cart via the Instacart API with foods and supplements tailored to correct those deficiencies.
+
+The product bridges the gap between clinical information and real-world behavior change.
+
+Problem Statement
+
+Patients frequently receive lab reports but:
+
+Do not understand medical terminology
+
+Ignore mild deficiencies
+
+Lack clear next steps
+
+Delay corrective action
+
+Have no easy way to translate lab results into dietary changes
+
+Example:
+A user sees “Vitamin D: 14 ng/mL” but does not know:
+
+Is that serious?
+
+What symptoms can it cause?
+
+What foods help?
+
+Should I take supplements?
+
+There is no seamless system that converts lab results into immediate nutritional action.
+
+Product Vision
+
+To become the infrastructure layer that connects:
+
+Medical Diagnostics → Personalized Nutrition → Automated Grocery Execution
+
+Long-term vision:
+A preventive health automation platform that converts medical data into daily lifestyle decisions.
+
+Target Users
+
+Primary Users:
+
+Health-conscious adults (25–45)
+
+Fitness enthusiasts
+
+Biohackers
+
+Individuals with recurring deficiencies
+
+Secondary Users:
+
+Telehealth platforms
+
+Corporate wellness programs
+
+Preventive healthcare startups
+
+Goals & Success Metrics
+
+Business Goals:
+
+Drive recurring usage through periodic lab uploads
+
+Establish grocery API partnerships
+
+Build a secure and compliant health intelligence dataset
+
+Success Metrics:
+
+PDF-to-cart conversion rate greater than 40%
+
+Cart checkout completion rate greater than 25%
+
+10,000+ Monthly Active Users
+
+60% repeat uploads within 6 months
+
+Less than 60 seconds from upload to cart generation
+
+Core Features
+
+6.1 PDF Upload & Processing
+
+Description:
+Users upload lab reports in PDF format (scanned or digital).
+
+Requirements:
+
+Secure upload
+
+Support multiple lab formats
+
+Extract test name, result value, units, and reference range
+
+Convert to structured JSON format
+
+Output:
+Validated biomarker data ready for analysis.
+
+6.2 Deficiency Detection Engine
+
+Description:
+Analyzes biomarker values against clinically accepted threshold ranges.
+
+Example Logic:
+
+Vitamin D < 20 ng/mL → Severe Deficiency
+
+20–30 ng/mL → Insufficient
+
+30 ng/mL → Normal
+
+Output:
+
+Severity classification
+
+Health implications
+
+Suggested daily intake guidance
+
+6.3 AI Explanation Layer
+
+Description:
+Generates a clear, user-friendly explanation of lab results.
+
+Example Output:
+“Your Vitamin D level is below the recommended range. Low levels may contribute to fatigue, weakened immunity, and reduced bone density. Increasing intake through diet and supplementation may help improve levels.”
+
+Tone Requirements:
+
+Clear
+
+Actionable
+
+Non-alarmist
+
+Non-diagnostic
+
+Encourages consultation with a healthcare provider
+
+6.4 Nutrition Recommendation Engine
+
+Description:
+Maps identified deficiencies to evidence-based food and supplement recommendations.
+
+Example (Vitamin D):
+
+Food Recommendations:
+
+Salmon
+
+Sardines
+
+Fortified milk
+
+Egg yolks
+
+UV-exposed mushrooms
+
+Supplement Recommendation:
+
+Vitamin D3 (dosage range based on severity category)
+
+Requirements:
+
+Evidence-based nutrient mapping
+
+Support dietary preferences (vegan, lactose-free, etc.)
+
+Avoid medical dosing claims
+
+6.5 Grocery Cart Automation
+
+Description:
+Automatically generates a grocery cart using the Instacart API.
+
+Flow:
+
+Map recommended foods to available store inventory
+
+Optimize for availability and price
+
+Generate cart
+
+Present preview to user
+
+User Controls:
+
+Edit cart
+
+Remove items
+
+Substitute products
+
+Proceed to checkout
+
+User Journey
+
+User signs up
+
+User uploads bloodwork PDF
+
+System processes and analyzes results
+
+Dashboard displays:
+
+Identified deficiencies
+
+Plain-language explanation
+
+Recommended foods and supplements
+
+User clicks “Add Recommended Items to Cart”
+
+Cart is generated automatically
+
+User reviews and checks out
+
+Non-Functional Requirements
+
+Performance:
+
+PDF analysis completed within 60 seconds
+
+System uptime greater than 99%
+
+Security:
+
+Encrypted file storage
+
+Encrypted data in transit (TLS 1.2+)
+
+Role-based access control
+
+Audit logging
+
+Compliance:
+
+HIPAA-ready architecture
+
+Clear medical disclaimer
+
+No resale of health data
+
+Risks & Mitigation
+
+Risk: Incorrect OCR parsing
+Mitigation: Confidence scoring and validation checks
+
+Risk: Misclassification of deficiency
+Mitigation: Clinically verified threshold rules
+
+Risk: Legal liability
+Mitigation: Clear disclaimers and non-diagnostic positioning
+
+Risk: Grocery API limitations
+Mitigation: Fallback substitutions and manual edit option
+
+Risk: User distrust
+Mitigation: Transparent explanations and visible data references
+
+MVP Scope (8–10 Weeks)
+
+Included:
+
+PDF upload
+
+Vitamin D detection only
+
+AI explanation
+
+Basic nutrition mapping
+
+Instacart cart creation
+
+Manual cart review
+
+Excluded:
+
+Multi-marker optimization
+
+Subscription automation
+
+Wearable integrations
+
+Predictive analytics
+
+Future Roadmap
+
+Phase 2:
+
+Multi-deficiency analysis
+
+Nutrient balancing across biomarkers
+
+Personalized meal plans
+
+Supplement subscription automation
+
+Phase 3:
+
+Wearable integrations
+
+Predictive deficiency modeling
+
+Telehealth integration
+
+Personalized health scoring dashboard
+
+Key Value Proposition
+
+NutriScan AI converts:
+
+Clinical Data → Nutritional Intelligence → Immediate Action
+
+Instead of leaving users with confusing lab numbers, the platform closes the loop between diagnosis and daily behavior.
