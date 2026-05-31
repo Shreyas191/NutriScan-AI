@@ -21,6 +21,7 @@ export default function CartPage() {
 }
 
 const MARKETPLACES = [
+    { id: "instacart", name: "Instacart", icon: "🛒" },
     { id: "walmart", name: "Walmart", icon: "🥕" },
     { id: "amazon", name: "Amazon", icon: "📦" },
 ];
@@ -31,7 +32,7 @@ function CartPageInner() {
 
     const [cart, setCart] = useState<CartItemType[]>([]);
     const [shopLinks, setShopLinks] = useState<Record<string, string>>({});
-    const [selectedMarketplace, setSelectedMarketplace] = useState("walmart");
+    const [selectedMarketplace, setSelectedMarketplace] = useState("instacart");
     const [loading, setLoading] = useState(!!reportId);
     const [error, setError] = useState(
         reportId ? "" : "No report ID. Please upload a lab report first."
@@ -212,25 +213,27 @@ function CartPageInner() {
                         </span>
                     </div>
 
-                    {currentShopUrl ? (
-                        <>
-                            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", maxWidth: 400 }}>
-                                Click below to open your personalized shopping list with all items ready to add.
+                    {selectedMarketplace !== "instacart" && (
+                        currentShopUrl ? (
+                            <>
+                                <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", maxWidth: 400 }}>
+                                    Click below to open your personalized shopping list with all items ready to add.
+                                </p>
+                                <a
+                                    href={currentShopUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn-primary"
+                                    style={{ fontSize: "1rem", padding: "14px 36px" }}
+                                >
+                                    Shop on {MARKETPLACES.find(m => m.id === selectedMarketplace)?.name} <ExternalLink size={16} />
+                                </a>
+                            </>
+                        ) : (
+                            <p style={{ color: "var(--severity-warning)", fontSize: "0.9rem" }}>
+                                Shopping link unavailable for {MARKETPLACES.find(m => m.id === selectedMarketplace)?.name}
                             </p>
-                            <a
-                                href={currentShopUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn-primary"
-                                style={{ fontSize: "1rem", padding: "14px 36px" }}
-                            >
-                                Shop on {MARKETPLACES.find(m => m.id === selectedMarketplace)?.name} <ExternalLink size={16} />
-                            </a>
-                        </>
-                    ) : (
-                        <p style={{ color: "var(--severity-warning)", fontSize: "0.9rem" }}>
-                            Shopping link unavailable for {MARKETPLACES.find(m => m.id === selectedMarketplace)?.name}
-                        </p>
+                        )
                     )}
 
                     {/* Auto-Shop Section */}
@@ -246,11 +249,16 @@ function CartPageInner() {
 function AutoShopSection({ items, retailer }: { items: string[], retailer: string }) {
     const [mode, setMode] = useState<"idle" | "running" | "done">("idle");
     const [logs, setLogs] = useState<string[]>([]);
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(retailer === "instacart");
+
+    const retailerName = retailer.charAt(0).toUpperCase() + retailer.slice(1);
 
     const startAutoShop = async () => {
         setMode("running");
-        setLogs([`Starting Walmart browser agent…`, `Opening browser — complete any OTP in the browser window if prompted.`]);
+        setLogs([
+            `Starting ${retailerName} browser agent…`,
+            `Opening browser — complete any login in the browser window if prompted.`,
+        ]);
 
         try {
             const { autoShop } = await import("@/lib/api");
@@ -282,14 +290,16 @@ function AutoShopSection({ items, retailer }: { items: string[], retailer: strin
     return (
         <div style={{ textAlign: "left", width: "100%" }}>
             <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-                🤖 Autonomous Shopping Agent
+                🤖 Autonomous {retailerName} Shopping Agent
             </h3>
 
             {mode === "idle" ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-                        The agent will open a browser and add these {items.length} items to your Walmart cart.
-                        If Walmart asks for an OTP, enter it in the browser window — the session is saved for future runs.
+                        The agent will open a browser and automatically add these {items.length} items to your {retailerName} cart.
+                        {retailer === "instacart"
+                            ? " If prompted to log in, complete it in the browser window — your session is saved for future runs."
+                            : " If asked for an OTP, enter it in the browser window — the session is saved for future runs."}
                     </p>
                     <button
                         onClick={startAutoShop}
@@ -299,7 +309,7 @@ function AutoShopSection({ items, retailer }: { items: string[], retailer: strin
                         Launch Agent 🚀
                     </button>
                     <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", textAlign: "center" }}>
-                        Your login session is saved after the first run — no OTP needed next time.
+                        Your login session is saved after the first run — no re-login needed next time.
                     </p>
                 </div>
             ) : (

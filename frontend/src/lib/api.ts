@@ -210,8 +210,8 @@ export async function getReport(reportId: string): Promise<AnalysisResponse> {
 }
 
 /**
- * Trigger the autonomous browser-use shopping agent and stream logs.
- * Calls POST /api/cart/auto-shop with browser-use + Gemini backend.
+ * Trigger the Playwright shopping agent and stream logs.
+ * Calls POST /api/cart/auto-shop — defaults to Instacart (Walmart is blocked by PerimeterX).
  */
 export async function autoShop(
     items: string[],
