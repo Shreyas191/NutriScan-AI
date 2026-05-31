@@ -48,7 +48,8 @@ export interface CartItem {
     amount: string;
     category: string;
     quantity: number;
-    instacart_url: string;
+    walmart_url: string; // Deprecated
+    links?: Record<string, string>;
 }
 
 export interface ReasoningStep {
@@ -66,7 +67,8 @@ export interface AnalysisResponse {
     deficiencies: Deficiency[];
     explanations: Explanation[];
     cart_items: CartItem[];
-    shop_all_url: string;
+    shopping_links?: Record<string, string>;
+    shop_all_url: string; // Deprecated
     ocr_confidence: number;
     ocr_method: string;
     reasoning_steps: ReasoningStep[];
@@ -205,4 +207,57 @@ export async function getReport(reportId: string): Promise<AnalysisResponse> {
     }
 
     return res.json();
+}
+
+/**
+ * Trigger the Playwright shopping agent and stream logs.
+ * Calls POST /api/cart/auto-shop — defaults to Instacart (Walmart is blocked by PerimeterX).
+ */
+export async function autoShop(
+    items: string[],
+    callbacks: {
+        onLog: (log: string) => void;
+        onDone: () => void;
+        onError: (error: string) => void;
+    },
+    retailer = "walmart",
+): Promise<void> {
+    const res = await fetch(`${API_BASE}/api/cart/auto-shop`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, retailer }),
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: "Auto-shop failed" }));
+        throw new Error(err.detail || "Auto-shop failed");
+    }
+
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error("Streaming not supported");
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split("\n\n");
+        buffer = events.pop() || "";
+
+        for (const event of events) {
+            if (!event.trim()) continue;
+            if (!event.startsWith("data: ")) continue;
+            try {
+                const data = JSON.parse(event.slice(6));
+                if (data.log) callbacks.onLog(data.log);
+                if (data.status === "done") callbacks.onDone();
+                if (data.error) callbacks.onError(data.error);
+            } catch (e) {
+                // ignore parse error
+            }
+        }
+    }
 }

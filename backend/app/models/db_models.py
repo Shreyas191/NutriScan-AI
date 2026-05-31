@@ -221,7 +221,7 @@ class AnalyticsEvent(Base):
     )
     event_type: Mapped[str] = mapped_column(
         String(100), nullable=False,
-        comment="e.g. pdf_uploaded, analysis_completed, cart_generated, instacart_redirect"
+        comment="e.g. pdf_uploaded, analysis_completed, cart_generated, walmart_redirect"
     )
     metadata_json: Mapped[str | None] = mapped_column(
         Text, nullable=True, comment="Optional JSON metadata blob"

@@ -49,15 +49,16 @@ export default function DietaryPreferenceSelector({
                             style={{
                                 padding: "8px 16px",
                                 borderRadius: "var(--radius-full)",
-                                border: active
-                                    ? "1px solid var(--accent-start)"
-                                    : "1px solid var(--border-default)",
-                                background: active ? "var(--accent-glow)" : "var(--bg-card)",
-                                color: active ? "var(--text-accent)" : "var(--text-secondary)",
+                                border: "none",
+                                background: "var(--bg-primary)",
+                                color: active ? "var(--accent-start)" : "var(--text-secondary)",
                                 fontSize: "0.8rem",
                                 fontWeight: 500,
                                 cursor: "pointer",
-                                transition: "all 0.2s",
+                                transition: "box-shadow 0.2s ease, color 0.2s ease",
+                                boxShadow: active
+                                    ? "inset 4px 4px 8px rgba(163,177,198,0.6), inset -4px -4px 8px rgba(255,255,255,0.5)"
+                                    : "5px 5px 10px rgba(163,177,198,0.6), -5px -5px 10px rgba(255,255,255,0.5)",
                             }}
                         >
                             {label}

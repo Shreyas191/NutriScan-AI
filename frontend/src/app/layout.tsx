@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import ClerkProviderWrapper from "@/components/ClerkProviderWrapper";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const inter = Inter({
-  variable: "--font-inter",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
 });
 
 const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -21,22 +31,33 @@ export const metadata: Metadata = {
     "Upload your lab report. Detect deficiencies. Get a personalised grocery cart — automatically.",
 };
 
+import { ClerkProvider } from "@clerk/nextjs";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${jetbrains.variable} antialiased`}
-      >
-        <ClerkProviderWrapper>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#6C63FF",
+          colorBackground: "#E0E5EC",
+          colorInputBackground: "#E0E5EC",
+          colorText: "#3D4852",
+        },
+      }}
+    >
+      <html lang="en">
+        <body
+          className={`${plusJakarta.variable} ${dmSans.variable} ${jetbrains.variable} antialiased`}
+        >
           <Navbar />
           <main className="min-h-screen">{children}</main>
           <Footer />
-        </ClerkProviderWrapper>
-      </body>
-    </html>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

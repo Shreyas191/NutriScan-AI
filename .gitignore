@@ -40,3 +40,12 @@ backend/*.egg-info/
 # --- Logs ---
 *.log
 npm-debug.log*
+
+# --- Browser automation / session data (never commit) ---
+backend/playwright_data/
+backend/browser_data/
+backend/instacart_browser_data/
+backend/credentials.json
+browser_data/
+instacart_browser_data/
+venv/

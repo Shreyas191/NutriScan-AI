@@ -17,23 +17,12 @@ const navLinks = [
     { href: "/cart", label: "Cart", icon: ShoppingCart },
 ];
 
-// Dynamically import Clerk components — they may not be available if
-// ClerkProvider is not mounted (e.g. build without publishable key)
-let SignedIn: React.ComponentType<{ children: React.ReactNode }> | null = null;
-let SignedOut: React.ComponentType<{ children: React.ReactNode }> | null = null;
-let UserButton: React.ComponentType<Record<string, unknown>> | null = null;
-let SignInButton: React.ComponentType<{ mode: string; children: React.ReactNode }> | null = null;
-
-const clerkAvailable = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-if (clerkAvailable) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const clerk = require("@clerk/nextjs");
-    SignedIn = clerk.SignedIn;
-    SignedOut = clerk.SignedOut;
-    UserButton = clerk.UserButton;
-    SignInButton = clerk.SignInButton;
-}
+import {
+    SignedIn,
+    SignedOut,
+    UserButton,
+    SignInButton,
+} from "@clerk/nextjs";
 
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -72,11 +61,18 @@ export default function Navbar() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            boxShadow: "var(--shadow-extruded-sm)",
                         }}
                     >
                         <ScanLine size={20} color="#fff" />
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: "1.15rem" }}>
+                    <span
+                        style={{
+                            fontWeight: 700,
+                            fontSize: "1.15rem",
+                            fontFamily: "var(--font-display)",
+                        }}
+                    >
                         Nutri<span className="gradient-text">Scan</span>
                     </span>
                 </Link>
@@ -106,7 +102,7 @@ export default function Navbar() {
                                 fontWeight: 500,
                                 transition: "all 0.2s",
                             }}
-                            className="hover:!bg-[var(--accent-glow)] hover:!text-[var(--text-primary)]"
+                            className="hover:!bg-[rgba(108,99,255,0.1)] hover:!text-[var(--accent-start)]"
                         >
                             <Icon size={16} />
                             {label}
@@ -114,31 +110,23 @@ export default function Navbar() {
                     ))}
 
                     {/* Auth */}
-                    {clerkAvailable && SignedOut && SignedIn && SignInButton && UserButton ? (
-                        <>
-                            <SignedOut>
-                                <SignInButton mode="modal">
-                                    <button className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
-                                        Sign In
-                                    </button>
-                                </SignInButton>
-                            </SignedOut>
-                            <SignedIn>
-                                <UserButton
-                                    afterSignOutUrl="/"
-                                    appearance={{
-                                        elements: {
-                                            avatarBox: { width: 34, height: 34 },
-                                        },
-                                    }}
-                                />
-                            </SignedIn>
-                        </>
-                    ) : (
-                        <Link href="/sign-in" className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
-                            Sign In
-                        </Link>
-                    )}
+                    <SignedOut>
+                        <SignInButton mode="modal">
+                            <button className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
+                                Sign In
+                            </button>
+                        </SignInButton>
+                    </SignedOut>
+                    <SignedIn>
+                        <UserButton
+                            afterSignOutUrl="/"
+                            appearance={{
+                                elements: {
+                                    avatarBox: { width: 34, height: 34 },
+                                },
+                            }}
+                        />
+                    </SignedIn>
                 </div>
 
                 {/* Mobile toggle */}
@@ -146,13 +134,21 @@ export default function Navbar() {
                     className="md:hidden"
                     onClick={() => setMobileOpen(!mobileOpen)}
                     style={{
-                        background: "none",
+                        width: 36,
+                        height: 36,
+                        borderRadius: "var(--radius-md)",
+                        background: "var(--bg-card)",
                         border: "none",
                         color: "var(--text-primary)",
                         cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: mobileOpen ? "var(--shadow-inset-sm)" : "var(--shadow-extruded-sm)",
+                        transition: "box-shadow 0.2s ease",
                     }}
                 >
-                    {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+                    {mobileOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>
 
@@ -164,6 +160,7 @@ export default function Navbar() {
                         display: "flex",
                         flexDirection: "column",
                         gap: 8,
+                        boxShadow: "var(--shadow-extruded)",
                     }}
                     className="md:hidden"
                 >
@@ -177,13 +174,13 @@ export default function Navbar() {
                                 alignItems: "center",
                                 gap: 8,
                                 padding: "10px 16px",
-                                borderRadius: "var(--radius-md)",
+                                borderRadius: "var(--radius-lg)",
                                 color: "var(--text-secondary)",
                                 textDecoration: "none",
                                 fontWeight: 500,
                                 transition: "background 0.2s",
                             }}
-                            className="hover:!bg-[var(--bg-elevated)]"
+                            className="hover:!bg-[rgba(108,99,255,0.1)] hover:!text-[var(--accent-start)]"
                         >
                             <Icon size={18} />
                             {label}
@@ -191,29 +188,21 @@ export default function Navbar() {
                     ))}
 
                     {/* Mobile auth */}
-                    {clerkAvailable && SignedOut && SignedIn && SignInButton && UserButton ? (
-                        <>
-                            <SignedOut>
-                                <SignInButton mode="modal">
-                                    <button className="btn-primary" style={{ marginTop: 8 }}>
-                                        Sign In
-                                    </button>
-                                </SignInButton>
-                            </SignedOut>
-                            <SignedIn>
-                                <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
-                                    <UserButton afterSignOutUrl="/" />
-                                    <span style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                                        Account
-                                    </span>
-                                </div>
-                            </SignedIn>
-                        </>
-                    ) : (
-                        <Link href="/sign-in" className="btn-primary" style={{ marginTop: 8 }}>
-                            Sign In
-                        </Link>
-                    )}
+                    <SignedOut>
+                        <SignInButton mode="modal">
+                            <button className="btn-primary" style={{ marginTop: 8 }}>
+                                Sign In
+                            </button>
+                        </SignInButton>
+                    </SignedOut>
+                    <SignedIn>
+                        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
+                            <UserButton afterSignOutUrl="/" />
+                            <span style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+                                Account
+                            </span>
+                        </div>
+                    </SignedIn>
                 </div>
             )}
         </nav>

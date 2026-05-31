@@ -41,8 +41,9 @@ function StepCard({ step }: { step: ReasoningStep }) {
                 gap: 12,
                 padding: "12px 16px",
                 borderRadius: "var(--radius-md)",
-                background: isToolCall ? "var(--accent-glow)" : "transparent",
-                border: `1px solid ${isToolCall ? "rgba(139, 92, 246, 0.2)" : "var(--border-default)"}`,
+                background: "var(--bg-card)",
+                boxShadow: isToolCall ? "var(--shadow-inset-sm)" : "none",
+                border: "none",
                 animation: "fadeSlideUp 0.3s ease-out",
             }}
         >
@@ -189,7 +190,8 @@ export default function UploadPage() {
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 8,
-                        background: "var(--accent-glow)",
+                        background: "var(--bg-primary)",
+                        boxShadow: "var(--shadow-inset-sm)",
                         borderRadius: "var(--radius-full)",
                         padding: "6px 16px",
                         marginBottom: 16,
@@ -201,7 +203,15 @@ export default function UploadPage() {
                     <Brain size={14} />
                     AI Agent Powered
                 </div>
-                <h1 style={{ fontSize: "1.8rem", fontWeight: 700, marginBottom: 8 }}>
+                <h1
+                    style={{
+                        fontSize: "1.8rem",
+                        fontWeight: 700,
+                        marginBottom: 8,
+                        fontFamily: "var(--font-display)",
+                        color: "var(--text-primary)",
+                    }}
+                >
                     Upload Your Lab Report
                 </h1>
                 <p style={{ color: "var(--text-secondary)", maxWidth: 480, margin: "0 auto" }}>
@@ -221,23 +231,28 @@ export default function UploadPage() {
                         onDragLeave={() => setDragOver(false)}
                         onDrop={handleDrop}
                         style={{
-                            border: `2px dashed ${dragOver ? "var(--accent-start)" : "var(--border-default)"}`,
-                            borderRadius: "var(--radius-xl)",
+                            boxShadow: dragOver
+                                ? "var(--shadow-inset-deep)"
+                                : "var(--shadow-inset)",
+                            border: "none",
+                            borderRadius: "var(--radius-2xl)",
                             padding: "60px 40px",
                             textAlign: "center",
-                            transition: "all 0.3s",
-                            background: dragOver ? "var(--accent-glow)" : "var(--bg-card)",
+                            background: "var(--bg-card)",
                             cursor: "pointer",
+                            transition: "box-shadow 0.3s ease",
                         }}
                         onClick={() => document.getElementById("file-input")?.click()}
                     >
+                        {/* Icon well — extruded-sm */}
                         <div
                             className="animate-float"
                             style={{
                                 width: 64,
                                 height: 64,
                                 borderRadius: "var(--radius-lg)",
-                                background: "var(--accent-glow)",
+                                background: "var(--bg-primary)",
+                                boxShadow: "var(--shadow-extruded-sm)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -247,7 +262,7 @@ export default function UploadPage() {
                             <CloudUpload size={28} color="var(--accent-start)" />
                         </div>
 
-                        <p style={{ fontWeight: 600, fontSize: "1rem", marginBottom: 8 }}>
+                        <p style={{ fontWeight: 600, fontSize: "1rem", marginBottom: 8, color: "var(--text-primary)" }}>
                             Drag & drop your PDF here
                         </p>
                         <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: 20 }}>
@@ -280,7 +295,7 @@ export default function UploadPage() {
             {state === "uploading" && (
                 <div className="card" style={{ padding: 32, textAlign: "center" }}>
                     <FileText size={40} color="var(--accent-start)" style={{ margin: "0 auto 16px" }} />
-                    <p style={{ fontWeight: 600 }}>{file?.name}</p>
+                    <p style={{ fontWeight: 600, color: "var(--text-primary)" }}>{file?.name}</p>
                     <p style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>
                         Uploading to agent…
                     </p>
@@ -301,12 +316,14 @@ export default function UploadPage() {
                             marginBottom: 16,
                         }}
                     >
+                        {/* Brain icon — inset well */}
                         <div
                             style={{
                                 width: 40,
                                 height: 40,
                                 borderRadius: "var(--radius-full)",
-                                background: "var(--accent-glow)",
+                                background: "var(--bg-primary)",
+                                boxShadow: "var(--shadow-inset)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -320,7 +337,7 @@ export default function UploadPage() {
                             />
                         </div>
                         <div>
-                            <p style={{ fontWeight: 600, fontSize: "0.95rem", margin: 0 }}>
+                            <p style={{ fontWeight: 600, fontSize: "0.95rem", margin: 0, color: "var(--text-primary)" }}>
                                 NutriScan AI Agent
                             </p>
                             <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, marginTop: 2 }}>
@@ -377,7 +394,7 @@ export default function UploadPage() {
                             color="var(--severity-normal)"
                             style={{ margin: "0 auto 16px" }}
                         />
-                        <p style={{ fontWeight: 700, fontSize: "1.2rem", marginBottom: 8 }}>
+                        <p style={{ fontWeight: 700, fontSize: "1.2rem", marginBottom: 8, color: "var(--text-primary)" }}>
                             Agent Analysis Complete!
                         </p>
                         <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: 8 }}>
@@ -460,7 +477,7 @@ export default function UploadPage() {
                             color="var(--severity-severe)"
                             style={{ margin: "0 auto 16px" }}
                         />
-                        <p style={{ fontWeight: 700, fontSize: "1.2rem", marginBottom: 8 }}>
+                        <p style={{ fontWeight: 700, fontSize: "1.2rem", marginBottom: 8, color: "var(--text-primary)" }}>
                             Agent Error
                         </p>
                         <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: 28 }}>

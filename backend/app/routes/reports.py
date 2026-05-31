@@ -72,7 +72,8 @@ class CartItemResponse(BaseModel):
     amount: str
     category: str
     quantity: int
-    instacart_url: str
+    walmart_url: str
+    links: dict[str, str] = {}
 
 
 class ReasoningStepResponse(BaseModel):
@@ -90,6 +91,7 @@ class AnalysisResponse(BaseModel):
     deficiencies: list[DeficiencyResponse]
     explanations: list[ExplanationResponse]
     cart_items: list[CartItemResponse]
+    shopping_links: dict[str, str] = {}
     shop_all_url: str
     ocr_confidence: float
     ocr_method: str
@@ -158,10 +160,12 @@ def _build_analysis_response(report_id: str, pr: PipelineResult) -> AnalysisResp
                 amount=item["amount"],
                 category=item["category"],
                 quantity=1,
-                instacart_url=item["instacart_url"],
+                walmart_url=item.get("links", {}).get("walmart", "") or item.get("walmart_url", ""),
+                links=item.get("links", {}),
             )
             for i, item in enumerate(pr.cart_items)
         ],
+        shopping_links=pr.shopping_links,
         shop_all_url=pr.shop_all_url,
         ocr_confidence=pr.ocr_confidence,
         ocr_method=pr.ocr_method,
