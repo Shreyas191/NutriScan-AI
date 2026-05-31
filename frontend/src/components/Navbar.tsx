@@ -61,11 +61,18 @@ export default function Navbar() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            boxShadow: "var(--shadow-extruded-sm)",
                         }}
                     >
                         <ScanLine size={20} color="#fff" />
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: "1.15rem" }}>
+                    <span
+                        style={{
+                            fontWeight: 700,
+                            fontSize: "1.15rem",
+                            fontFamily: "var(--font-display)",
+                        }}
+                    >
                         Nutri<span className="gradient-text">Scan</span>
                     </span>
                 </Link>
@@ -95,7 +102,7 @@ export default function Navbar() {
                                 fontWeight: 500,
                                 transition: "all 0.2s",
                             }}
-                            className="hover:!bg-[var(--accent-glow)] hover:!text-[var(--text-primary)]"
+                            className="hover:!bg-[rgba(108,99,255,0.1)] hover:!text-[var(--accent-start)]"
                         >
                             <Icon size={16} />
                             {label}
@@ -127,13 +134,21 @@ export default function Navbar() {
                     className="md:hidden"
                     onClick={() => setMobileOpen(!mobileOpen)}
                     style={{
-                        background: "none",
+                        width: 36,
+                        height: 36,
+                        borderRadius: "var(--radius-md)",
+                        background: "var(--bg-card)",
                         border: "none",
                         color: "var(--text-primary)",
                         cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: mobileOpen ? "var(--shadow-inset-sm)" : "var(--shadow-extruded-sm)",
+                        transition: "box-shadow 0.2s ease",
                     }}
                 >
-                    {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+                    {mobileOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>
 
@@ -145,6 +160,7 @@ export default function Navbar() {
                         display: "flex",
                         flexDirection: "column",
                         gap: 8,
+                        boxShadow: "var(--shadow-extruded)",
                     }}
                     className="md:hidden"
                 >
@@ -158,13 +174,13 @@ export default function Navbar() {
                                 alignItems: "center",
                                 gap: 8,
                                 padding: "10px 16px",
-                                borderRadius: "var(--radius-md)",
+                                borderRadius: "var(--radius-lg)",
                                 color: "var(--text-secondary)",
                                 textDecoration: "none",
                                 fontWeight: 500,
                                 transition: "background 0.2s",
                             }}
-                            className="hover:!bg-[var(--bg-elevated)]"
+                            className="hover:!bg-[rgba(108,99,255,0.1)] hover:!text-[var(--accent-start)]"
                         >
                             <Icon size={18} />
                             {label}

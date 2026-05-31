@@ -44,7 +44,7 @@ export default function DeficiencyCard({
                 }}
             >
                 <div>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 4 }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: 4, color: "var(--text-primary)" }}>
                         {name}
                     </h3>
                     <span
@@ -62,29 +62,40 @@ export default function DeficiencyCard({
                 </span>
             </div>
 
-            {/* Value */}
+            {/* Value — inset well display */}
             <div
                 style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: barColors[severity],
+                    background: "var(--bg-primary)",
+                    boxShadow: "var(--shadow-inset)",
+                    borderRadius: "var(--radius-lg)",
+                    padding: "12px 16px",
                     marginBottom: 16,
+                    display: "inline-block",
                 }}
             >
-                {value}
+                <span
+                    style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "2rem",
+                        fontWeight: 700,
+                        color: barColors[severity],
+                    }}
+                >
+                    {value}
+                </span>
                 <span style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginLeft: 4 }}>
                     {unit}
                 </span>
             </div>
 
-            {/* Progress bar */}
+            {/* Progress bar — inset-sm track */}
             <div
                 style={{
                     width: "100%",
                     height: 6,
                     borderRadius: "var(--radius-full)",
-                    background: "var(--bg-elevated)",
+                    background: "var(--bg-card)",
+                    boxShadow: "var(--shadow-inset-sm)",
                     overflow: "hidden",
                 }}
             >

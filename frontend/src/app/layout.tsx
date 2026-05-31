@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const inter = Inter({
-  variable: "--font-inter",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
 });
 
 const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -22,7 +32,6 @@ export const metadata: Metadata = {
 };
 
 import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 
 export default function RootLayout({
   children,
@@ -32,18 +41,17 @@ export default function RootLayout({
   return (
     <ClerkProvider
       appearance={{
-        baseTheme: dark,
         variables: {
-          colorPrimary: "#10b981",
-          colorBackground: "#0c1220",
-          colorInputBackground: "#111827",
-          colorText: "#f1f5f9",
+          colorPrimary: "#6C63FF",
+          colorBackground: "#E0E5EC",
+          colorInputBackground: "#E0E5EC",
+          colorText: "#3D4852",
         },
       }}
     >
       <html lang="en">
         <body
-          className={`${inter.variable} ${jetbrains.variable} antialiased`}
+          className={`${plusJakarta.variable} ${dmSans.variable} ${jetbrains.variable} antialiased`}
         >
           <Navbar />
           <main className="min-h-screen">{children}</main>

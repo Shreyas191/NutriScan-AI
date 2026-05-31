@@ -4,8 +4,11 @@ export default function Footer() {
     return (
         <footer
             style={{
-                borderTop: "1px solid var(--border-default)",
-                padding: "40px 24px",
+                borderTop: "1px solid rgba(163, 177, 198, 0.4)",
+                paddingTop: 40,
+                paddingBottom: 40,
+                paddingLeft: 24,
+                paddingRight: 24,
                 marginTop: 80,
             }}
         >
@@ -38,7 +41,7 @@ export default function Footer() {
                     style={{
                         width: 60,
                         height: 1,
-                        background: "var(--border-default)",
+                        background: "rgba(163, 177, 198, 0.4)",
                     }}
                 />
 
@@ -55,7 +58,7 @@ export default function Footer() {
                     <span>© {new Date().getFullYear()} NutriScan AI</span>
                     <span>·</span>
                     <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        Made with <Heart size={12} color="var(--severity-severe)" fill="var(--severity-severe)" />
+                        Made with <Heart size={12} color="#C53030" fill="#C53030" />
                     </span>
                 </div>
             </div>

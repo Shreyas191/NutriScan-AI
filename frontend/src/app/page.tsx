@@ -50,29 +50,70 @@ export default function Home() {
           minHeight: "85vh",
         }}
       >
-        {/* Background glow */}
+        {/* Decorative neumorphic circles — desktop only */}
         <div
           style={{
             position: "absolute",
-            top: "10%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 600,
-            height: 600,
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)",
+            right: "5%",
+            top: "50%",
+            transform: "translateY(-50%)",
             pointerEvents: "none",
           }}
-        />
+          className="hidden lg:block"
+        >
+          {/* Outer ring — extruded */}
+          <div
+            style={{
+              width: 280,
+              height: 280,
+              borderRadius: "50%",
+              background: "var(--bg-primary)",
+              boxShadow: "var(--shadow-extruded)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {/* Middle ring — inset */}
+            <div
+              style={{
+                width: 180,
+                height: 180,
+                borderRadius: "50%",
+                background: "var(--bg-primary)",
+                boxShadow: "var(--shadow-inset)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {/* Inner — extruded accent */}
+              <div
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  background:
+                    "linear-gradient(135deg, var(--accent-start), var(--accent-end))",
+                  boxShadow:
+                    "5px 5px 12px rgba(108,99,255,0.4), -3px -3px 8px rgba(255,255,255,0.5)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ScanLine size={32} color="#fff" />
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="animate-fade-in-up" style={{ position: "relative", zIndex: 1 }}>
           {/* Badge */}
           <div
             className="badge"
             style={{
-              background: "var(--accent-glow)",
-              color: "var(--text-accent)",
+              color: "var(--accent-start)",
               marginBottom: 24,
               fontSize: "0.8rem",
               padding: "6px 16px",
@@ -90,6 +131,8 @@ export default function Home() {
               maxWidth: 720,
               margin: "0 auto 20px",
               letterSpacing: "-0.03em",
+              fontFamily: "var(--font-display)",
+              color: "var(--text-primary)",
             }}
           >
             From Bloodwork
@@ -136,15 +179,27 @@ export default function Home() {
       >
         {stats.map(({ value, label }) => (
           <div key={label} className="card" style={{ padding: 24 }}>
+            {/* Inset well for the number */}
             <div
-              className="gradient-text"
               style={{
-                fontSize: "1.8rem",
-                fontWeight: 800,
-                fontFamily: "var(--font-mono)",
+                background: "var(--bg-primary)",
+                boxShadow: "var(--shadow-inset)",
+                borderRadius: "var(--radius-lg)",
+                padding: "12px 20px",
+                marginBottom: 8,
+                display: "inline-block",
               }}
             >
-              {value}
+              <span
+                className="gradient-text"
+                style={{
+                  fontSize: "1.8rem",
+                  fontWeight: 800,
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {value}
+              </span>
             </div>
             <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 4 }}>
               {label}
@@ -161,6 +216,8 @@ export default function Home() {
             fontSize: "2rem",
             fontWeight: 700,
             marginBottom: 12,
+            fontFamily: "var(--font-display)",
+            color: "var(--text-primary)",
           }}
         >
           How It Works
@@ -192,7 +249,7 @@ export default function Home() {
               className="card animate-fade-in-up"
               style={{ padding: 32, position: "relative" }}
             >
-              {/* Step number */}
+              {/* Step number — extruded pill */}
               <div
                 style={{
                   position: "absolute",
@@ -202,27 +259,40 @@ export default function Home() {
                   fontSize: "0.7rem",
                   color: "var(--text-muted)",
                   letterSpacing: "0.1em",
+                  background: "var(--bg-primary)",
+                  boxShadow: "var(--shadow-extruded-sm)",
+                  borderRadius: "var(--radius-full)",
+                  padding: "3px 10px",
                 }}
               >
-                STEP {String(i + 1).padStart(2, "0")}
+                {String(i + 1).padStart(2, "0")}
               </div>
 
+              {/* Icon well — inset deep */}
               <div
                 style={{
-                  width: 48,
-                  height: 48,
+                  width: 56,
+                  height: 56,
                   borderRadius: "var(--radius-md)",
-                  background: "var(--accent-glow)",
+                  background: "var(--bg-primary)",
+                  boxShadow: "var(--shadow-inset-deep)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   marginBottom: 20,
                 }}
               >
-                <Icon size={22} color="var(--accent-start)" />
+                <Icon size={24} color="var(--accent-start)" />
               </div>
 
-              <h3 style={{ fontSize: "1.15rem", fontWeight: 600, marginBottom: 8 }}>
+              <h3
+                style={{
+                  fontSize: "1.15rem",
+                  fontWeight: 600,
+                  marginBottom: 8,
+                  color: "var(--text-primary)",
+                }}
+              >
                 {title}
               </h3>
               <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.6 }}>
@@ -255,9 +325,10 @@ export default function Home() {
               display: "flex",
               alignItems: "center",
               gap: 12,
-              padding: "16px 20px",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--border-default)",
+              padding: "16px 24px",
+              borderRadius: "var(--radius-full)",
+              background: "var(--bg-primary)",
+              boxShadow: "var(--shadow-extruded-sm)",
               fontSize: "0.85rem",
               color: "var(--text-secondary)",
             }}
@@ -279,7 +350,15 @@ export default function Home() {
           textAlign: "center",
         }}
       >
-        <h2 style={{ fontSize: "1.8rem", fontWeight: 700, marginBottom: 12 }}>
+        <h2
+          style={{
+            fontSize: "1.8rem",
+            fontWeight: 700,
+            marginBottom: 12,
+            fontFamily: "var(--font-display)",
+            color: "var(--text-primary)",
+          }}
+        >
           Ready to decode your bloodwork?
         </h2>
         <p

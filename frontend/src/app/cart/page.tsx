@@ -86,7 +86,7 @@ function CartPageInner() {
         return (
             <div style={{ maxWidth: 600, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
                 <AlertTriangle size={48} color="var(--severity-severe)" style={{ margin: "0 auto 16px" }} />
-                <h2 style={{ fontWeight: 700, marginBottom: 8 }}>Could not load cart</h2>
+                <h2 style={{ fontWeight: 700, marginBottom: 8, color: "var(--text-primary)" }}>Could not load cart</h2>
                 <p style={{ color: "var(--text-secondary)", marginBottom: 24 }}>{error}</p>
                 <Link href="/upload" className="btn-primary">Upload a Report</Link>
             </div>
@@ -99,7 +99,9 @@ function CartPageInner() {
             <div style={{ marginBottom: 32 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <ShoppingCart size={24} color="var(--accent-start)" />
-                    <h1 style={{ fontSize: "1.6rem", fontWeight: 700 }}>Your Grocery Cart</h1>
+                    <h1 style={{ fontSize: "1.6rem", fontWeight: 700, color: "var(--text-primary)", fontFamily: "var(--font-display)" }}>
+                        Your Grocery Cart
+                    </h1>
                 </div>
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
                     {cart.length} items based on your deficiency analysis · Select your preferred store
@@ -114,20 +116,25 @@ function CartPageInner() {
                         <button
                             key={m.id}
                             onClick={() => setSelectedMarketplace(m.id)}
-                            className={active ? "btn-primary" : "btn-secondary"}
                             style={{
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 8,
                                 padding: "10px 20px",
                                 borderRadius: "var(--radius-lg)",
-                                border: active ? "none" : "1px solid var(--border-default)",
+                                border: "none",
+                                background: "var(--bg-primary)",
+                                color: active ? "var(--accent-start)" : "var(--text-secondary)",
+                                fontWeight: 600,
                                 cursor: "pointer",
-                                transition: "all 0.2s ease",
+                                transition: "box-shadow 0.2s ease, color 0.2s ease",
+                                boxShadow: active
+                                    ? "var(--shadow-inset-sm)"
+                                    : "var(--shadow-extruded-sm)",
                             }}
                         >
                             <span>{m.icon}</span>
-                            <span style={{ fontWeight: 600 }}>{m.name}</span>
+                            <span>{m.name}</span>
                             {active && <Check size={16} />}
                         </button>
                     );
@@ -154,7 +161,6 @@ function CartPageInner() {
                         </h2>
                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                             {items.map((item) => {
-                                // Fallback for direct item link if needed
                                 const itemLink = item.links?.[selectedMarketplace] ||
                                     (selectedMarketplace === "walmart" ? item.walmart_url : "");
 
@@ -208,7 +214,7 @@ function CartPageInner() {
                 >
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <Sparkles size={18} color="var(--accent-start)" />
-                        <span style={{ fontWeight: 600 }}>
+                        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                             Ready to shop on {MARKETPLACES.find(m => m.id === selectedMarketplace)?.name}
                         </span>
                     </div>
@@ -230,14 +236,21 @@ function CartPageInner() {
                                 </a>
                             </>
                         ) : (
-                            <p style={{ color: "var(--severity-warning)", fontSize: "0.9rem" }}>
+                            <p style={{ color: "var(--severity-insufficient)", fontSize: "0.9rem" }}>
                                 Shopping link unavailable for {MARKETPLACES.find(m => m.id === selectedMarketplace)?.name}
                             </p>
                         )
                     )}
 
                     {/* Auto-Shop Section */}
-                    <div style={{ marginTop: 24, width: "100%", borderTop: "1px solid var(--border-default)", paddingTop: 24 }}>
+                    <div
+                        style={{
+                            marginTop: 24,
+                            width: "100%",
+                            borderTop: "1px solid rgba(163,177,198,0.4)",
+                            paddingTop: 24,
+                        }}
+                    >
                         <AutoShopSection items={cart.map(c => c.name)} retailer={selectedMarketplace} />
                     </div>
                 </div>
@@ -289,7 +302,7 @@ function AutoShopSection({ items, retailer }: { items: string[], retailer: strin
 
     return (
         <div style={{ textAlign: "left", width: "100%" }}>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 12, display: "flex", alignItems: "center", gap: 8, color: "var(--text-primary)" }}>
                 🤖 Autonomous {retailerName} Shopping Agent
             </h3>
 
@@ -304,7 +317,6 @@ function AutoShopSection({ items, retailer }: { items: string[], retailer: strin
                     <button
                         onClick={startAutoShop}
                         className="btn-primary"
-                        style={{ background: "var(--accent-gradient)", border: "none" }}
                     >
                         Launch Agent 🚀
                     </button>
@@ -313,16 +325,20 @@ function AutoShopSection({ items, retailer }: { items: string[], retailer: strin
                     </p>
                 </div>
             ) : (
-                <div style={{
-                    background: "#1e1e1e",
-                    color: "#00ff00",
-                    fontFamily: "monospace",
-                    padding: 16,
-                    borderRadius: 8,
-                    height: 300,
-                    overflowY: "auto",
-                    fontSize: "0.9rem"
-                }}>
+                /* Terminal — neumorphic inset-deep well with dark interior */
+                <div
+                    style={{
+                        background: "#1a1e2e",
+                        color: "#a5f3a5",
+                        fontFamily: "var(--font-mono)",
+                        padding: 16,
+                        boxShadow: "var(--shadow-inset-deep)",
+                        borderRadius: "var(--radius-xl)",
+                        height: 300,
+                        overflowY: "auto",
+                        fontSize: "0.9rem",
+                    }}
+                >
                     {logs.map((log, i) => (
                         <div key={i} style={{ marginBottom: 4 }}>{"> "}{log}</div>
                     ))}

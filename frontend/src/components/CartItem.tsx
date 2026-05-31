@@ -31,13 +31,14 @@ export default function CartItem({
                 gap: 14,
             }}
         >
-            {/* Emoji */}
+            {/* Emoji — inset-deep well */}
             <div
                 style={{
                     width: 44,
                     height: 44,
                     borderRadius: "var(--radius-md)",
-                    background: "var(--bg-elevated)",
+                    background: "var(--bg-card)",
+                    boxShadow: "var(--shadow-inset-deep)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -50,7 +51,7 @@ export default function CartItem({
 
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 2 }}>
+                <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 2, color: "var(--text-primary)" }}>
                     {name}
                 </div>
                 <span className="badge badge-normal" style={{ fontSize: "0.65rem" }}>
@@ -58,15 +59,17 @@ export default function CartItem({
                 </span>
             </div>
 
-            {/* Quantity */}
+            {/* Quantity stepper — inset-sm pill */}
             <div
                 style={{
                     display: "flex",
                     alignItems: "center",
                     gap: 8,
-                    border: "1px solid var(--border-default)",
+                    boxShadow: "var(--shadow-inset-sm)",
+                    border: "none",
                     borderRadius: "var(--radius-full)",
                     padding: "4px 8px",
+                    background: "var(--bg-card)",
                 }}
             >
                 <button
@@ -92,6 +95,7 @@ export default function CartItem({
                         fontSize: "0.85rem",
                         minWidth: 20,
                         textAlign: "center",
+                        color: "var(--text-primary)",
                     }}
                 >
                     {quantity}
@@ -115,7 +119,7 @@ export default function CartItem({
                 </button>
             </div>
 
-            {/* Actions */}
+            {/* Actions — small extruded circles */}
             <div style={{ display: "flex", gap: 6 }}>
                 {href && (
                     <a
@@ -127,16 +131,23 @@ export default function CartItem({
                             width: 32,
                             height: 32,
                             borderRadius: "var(--radius-full)",
-                            background: "none",
-                            border: "1px solid var(--border-default)",
+                            background: "var(--bg-card)",
+                            border: "none",
                             color: "var(--accent-start)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             cursor: "pointer",
-                            transition: "all 0.2s",
+                            boxShadow: "var(--shadow-extruded-sm)",
+                            transition: "box-shadow 0.2s ease",
                             textDecoration: "none",
                         }}
+                        onMouseEnter={(e) =>
+                            (e.currentTarget.style.boxShadow = "var(--shadow-inset-sm)")
+                        }
+                        onMouseLeave={(e) =>
+                            (e.currentTarget.style.boxShadow = "var(--shadow-extruded-sm)")
+                        }
                     >
                         <ExternalLink size={14} />
                     </a>
@@ -148,15 +159,22 @@ export default function CartItem({
                         width: 32,
                         height: 32,
                         borderRadius: "var(--radius-full)",
-                        background: "none",
-                        border: "1px solid var(--border-default)",
+                        background: "var(--bg-card)",
+                        border: "none",
                         color: "var(--text-muted)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         cursor: "pointer",
-                        transition: "all 0.2s",
+                        boxShadow: "var(--shadow-extruded-sm)",
+                        transition: "box-shadow 0.2s ease",
                     }}
+                    onMouseEnter={(e) =>
+                        (e.currentTarget.style.boxShadow = "var(--shadow-inset-sm)")
+                    }
+                    onMouseLeave={(e) =>
+                        (e.currentTarget.style.boxShadow = "var(--shadow-extruded-sm)")
+                    }
                 >
                     <RefreshCw size={14} />
                 </button>
@@ -167,15 +185,22 @@ export default function CartItem({
                         width: 32,
                         height: 32,
                         borderRadius: "var(--radius-full)",
-                        background: "none",
-                        border: "1px solid rgba(239,68,68,0.2)",
+                        background: "var(--bg-card)",
+                        border: "none",
                         color: "var(--severity-severe)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         cursor: "pointer",
-                        transition: "all 0.2s",
+                        boxShadow: "var(--shadow-extruded-sm)",
+                        transition: "box-shadow 0.2s ease",
                     }}
+                    onMouseEnter={(e) =>
+                        (e.currentTarget.style.boxShadow = "var(--shadow-inset-sm)")
+                    }
+                    onMouseLeave={(e) =>
+                        (e.currentTarget.style.boxShadow = "var(--shadow-extruded-sm)")
+                    }
                 >
                     <Trash2 size={14} />
                 </button>
