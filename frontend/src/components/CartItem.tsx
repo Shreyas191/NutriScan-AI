@@ -1,10 +1,11 @@
-import { Trash2, RefreshCw } from "lucide-react";
+import { Trash2, RefreshCw, ExternalLink } from "lucide-react";
 
 interface CartItemProps {
     name: string;
     emoji: string;
     category: string;
     quantity: number;
+    href?: string;
     onRemove?: () => void;
     onSubstitute?: () => void;
     onQuantityChange?: (qty: number) => void;
@@ -15,6 +16,7 @@ export default function CartItem({
     emoji,
     category,
     quantity,
+    href,
     onRemove,
     onSubstitute,
     onQuantityChange,
@@ -115,6 +117,30 @@ export default function CartItem({
 
             {/* Actions */}
             <div style={{ display: "flex", gap: 6 }}>
+                {href && (
+                    <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="View on store"
+                        style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "var(--radius-full)",
+                            background: "none",
+                            border: "1px solid var(--border-default)",
+                            color: "var(--accent-start)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            textDecoration: "none",
+                        }}
+                    >
+                        <ExternalLink size={14} />
+                    </a>
+                )}
                 <button
                     onClick={onSubstitute}
                     title="Substitute"

@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routes.reports import router as reports_router
+from app.routes.cart import router as cart_router
 
 
 def init_sentry() -> None:
@@ -64,4 +65,5 @@ async def health_check():
 # API routers
 # ---------------------------------------------------------------------------
 app.include_router(reports_router)
+app.include_router(cart_router)
 

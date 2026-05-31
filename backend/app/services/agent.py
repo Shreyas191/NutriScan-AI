@@ -1,7 +1,5 @@
 """
-NutriScan AI Agent — autonomous health analysis agent.
-
-Supports both Gemini (free tier, default) and Claude (for hackathon).
+NutriScan AI Agent — autonomous health analysis agent powered by Gemini.
 
 Instead of a fixed pipeline, the AI acts as a reasoning agent that:
   - Decides which tool to call next
@@ -10,10 +8,10 @@ Instead of a fixed pipeline, the AI acts as a reasoning agent that:
   - Adapts based on what it finds
 
 Architecture:
-  1. Define tools (wrappers around existing service functions)
-  2. Send initial message + PDF context to the AI
-  3. Loop: AI responds with function call → execute → feed result back
-  4. Loop ends when AI responds with text only (final answer)
+  1. Define tools as Gemini FunctionDeclarations
+  2. Send initial message + PDF context to Gemini
+  3. Loop: Gemini responds with function_call → execute → feed result back
+  4. Loop ends when Gemini responds with text only (final answer)
 """
 
 from __future__ import annotations
@@ -30,7 +28,8 @@ from app.services.biomarker_extractor import extract_biomarkers
 from app.services.deficiency_engine import detect_deficiencies
 from app.services.explanation_generator import generate_explanations
 from app.services.food_recommender import recommend_foods
-from app.services import instacart
+from app.services.food_recommender import recommend_foods
+from app.services import shopping
 from app.models.biomarker import (
     Biomarker,
     Deficiency,
@@ -64,7 +63,8 @@ class AgentState:
     explanations: list[Explanation] = field(default_factory=list)
     food_recommendations: list[FoodRecommendation] = field(default_factory=list)
     cart_items: list[dict] = field(default_factory=list)
-    shop_all_url: str = ""
+    shopping_links: dict[str, str] = field(default_factory=dict)
+    shop_all_url: str = ""  # Deprecated, kept for backward compat temporarily
 
     # Reasoning trace
     reasoning_steps: list[ReasoningStep] = field(default_factory=list)
@@ -82,7 +82,7 @@ class ReasoningStep:
 
 
 # ---------------------------------------------------------------------------
-# Tool definitions — neutral format, converted per-provider at runtime
+# Tool definitions
 # ---------------------------------------------------------------------------
 
 AGENT_TOOLS: list[dict[str, Any]] = [
@@ -161,9 +161,9 @@ AGENT_TOOLS: list[dict[str, Any]] = [
         },
     },
     {
-        "name": "build_instacart_cart",
+        "name": "build_shopping_carts",
         "description": (
-            "Build Instacart shopping cart URLs from food recommendations. "
+            "Build shopping cart links for Walmart and Amazon. "
             "This is typically the final step. Call AFTER recommend_foods."
         ),
         "parameters": {
@@ -175,7 +175,7 @@ AGENT_TOOLS: list[dict[str, Any]] = [
 
 
 # ---------------------------------------------------------------------------
-# System prompt — instructs the AI to be an autonomous agent
+# System prompt — instructs Claude to be an autonomous agent
 # ---------------------------------------------------------------------------
 
 AGENT_SYSTEM_PROMPT = """You are the NutriScan AI Agent — an autonomous health analysis assistant.
@@ -188,7 +188,7 @@ Analyze the uploaded PDF lab report end-to-end:
 2. Parse biomarker values from the text
 3. Detect any deficiencies
 4. If deficiencies are found, generate explanations and food recommendations
-5. Build an Instacart grocery cart with the recommended items
+5. Build shopping carts for Walmart and Amazon with the recommended items
 
 ## How to Behave
 - **Think step by step.** Before each tool call, briefly explain your reasoning.
@@ -209,7 +209,7 @@ After completing all steps, provide a brief final summary mentioning:
 - How many biomarkers were found
 - How many deficiencies were detected
 - What food categories were recommended
-- That the Instacart cart is ready
+- That the Walmart cart is ready
 
 Keep your final summary to 2-3 sentences."""
 
@@ -336,24 +336,21 @@ async def _execute_tool(
                 ],
             })
 
-        elif tool_name == "build_instacart_cart":
+        elif tool_name == "build_shopping_carts":
             if not state.food_recommendations:
                 return json.dumps({"success": False, "error": "No food recommendations. Run recommend_foods first."})
 
-            result = await instacart.create_shopping_list(state.food_recommendations)
+            result = await shopping.create_shopping_links(state.food_recommendations)
 
             state.cart_items = result["cart_items"]
-            state.shop_all_url = result["shop_all_url"]
+            state.shopping_links = result["shopping_links"]
+            # Backwards compat
+            state.shop_all_url = result["shopping_links"].get("walmart", "")
 
             return json.dumps({
                 "success": True,
                 "cart_item_count": len(result["cart_items"]),
-                "shop_all_url": result["shop_all_url"],
-                "api_used": result.get("api_used", False),
-                "items": [
-                    {"name": item["name"], "instacart_url": item["instacart_url"]}
-                    for item in result["cart_items"]
-                ],
+                "shopping_links": result["shopping_links"],
             })
 
         else:
@@ -365,276 +362,23 @@ async def _execute_tool(
 
 
 # ---------------------------------------------------------------------------
-# Agent loop — Gemini implementation with function calling
+# Agent loop — Groq / OpenAI-style tool calling
 # ---------------------------------------------------------------------------
 
-async def _run_agent_gemini(
-    pdf_bytes: bytes,
-    dietary_preferences: list[str] | None = None,
-    on_step: Callable[[ReasoningStep], Any] | None = None,
-) -> AgentState:
-    """Run the agent using Gemini function calling (google.genai SDK)."""
-    from google.genai import types
-
-    from app.services.gemini_client import get_client
-
-    state = AgentState(
-        pdf_bytes=pdf_bytes,
-        dietary_preferences=dietary_preferences or [],
-    )
-
-    client = get_client()
-
-    # Convert tool definitions to Gemini FunctionDeclarations
-    function_declarations = []
-    for tool_def in AGENT_TOOLS:
-        fd = types.FunctionDeclaration(
-            name=tool_def["name"],
-            description=tool_def["description"],
-            parameters=tool_def.get("parameters", {"type": "object", "properties": {}}),
-        )
-        function_declarations.append(fd)
-
-    gemini_tool = types.Tool(function_declarations=function_declarations)
-
-    # Build initial message
-    pref_text = ""
-    if dietary_preferences:
-        pref_text = f"\n\nDietary preferences: {', '.join(dietary_preferences)}"
-
-    initial_message = (
-        f"I've uploaded a lab report PDF ({len(pdf_bytes):,} bytes). "
-        f"Please analyze it completely — extract biomarkers, detect deficiencies, "
-        f"generate explanations, recommend foods, and build an Instacart cart."
-        f"{pref_text}"
-    )
-
-    # Chat history for multi-turn conversation
-    contents: list[types.Content] = [
-        types.Content(
-            role="user",
-            parts=[types.Part.from_text(text=initial_message)],
-        )
-    ]
-
-    step_number = 0
-
-    for iteration in range(MAX_ITERATIONS):
-        logger.info("Agent iteration %d/%d", iteration + 1, MAX_ITERATIONS)
-
-        # Call Gemini
-        response = client.models.generate_content(
-            model=settings.GEMINI_FLASH_MODEL,
-            contents=contents,
-            config=types.GenerateContentConfig(
-                system_instruction=AGENT_SYSTEM_PROMPT,
-                tools=[gemini_tool],
-                temperature=0.2,
-                max_output_tokens=4096,
-            ),
-        )
-
-        # Process response parts
-        function_calls = []
-        text_parts = []
-
-        if response.candidates and response.candidates[0].content:
-            for part in response.candidates[0].content.parts:
-                if part.function_call:
-                    function_calls.append(part.function_call)
-                elif part.text:
-                    text_parts.append(part.text)
-
-        # Record any reasoning text
-        if text_parts:
-            step_number += 1
-            reasoning_text = " ".join(text_parts)
-            step = ReasoningStep(
-                step_number=step_number,
-                action="reasoning",
-                reasoning=reasoning_text,
-                timestamp=time.time(),
-            )
-            state.reasoning_steps.append(step)
-            if on_step:
-                on_step(step)
-
-        # If no function calls, agent is done
-        if not function_calls:
-            logger.info("Agent finished — no more function calls")
-            break
-
-        # Add the model's response to contents
-        contents.append(response.candidates[0].content)
-
-        # Execute each function call and build responses
-        function_response_parts = []
-        for fc in function_calls:
-            step_number += 1
-            tool_name = fc.name
-            tool_args = dict(fc.args) if fc.args else {}
-
-            logger.info("Agent calling tool: %s", tool_name)
-
-            # Execute the tool
-            result_str = await _execute_tool(tool_name, tool_args, state)
-            result_data = json.loads(result_str)
-
-            # Record step
-            summary = _summarize_result(tool_name, result_data)
-            step = ReasoningStep(
-                step_number=step_number,
-                action="tool_call",
-                tool_name=tool_name,
-                reasoning=f"Calling {tool_name}",
-                result_summary=summary,
-                timestamp=time.time(),
-            )
-            state.reasoning_steps.append(step)
-            if on_step:
-                on_step(step)
-
-            # Build function response part
-            function_response_parts.append(
-                types.Part.from_function_response(
-                    name=tool_name,
-                    response=result_data,
-                )
-            )
-
-        # Send function results back to Gemini
-        contents.append(
-            types.Content(
-                role="user",
-                parts=function_response_parts,
-            )
-        )
-
-    else:
-        logger.warning("Agent hit max iterations (%d)", MAX_ITERATIONS)
-
-    return state
-
-
-# ---------------------------------------------------------------------------
-# Agent loop — Claude implementation (kept for future hackathon use)
-# ---------------------------------------------------------------------------
-
-async def _run_agent_claude(
-    pdf_bytes: bytes,
-    dietary_preferences: list[str] | None = None,
-    on_step: Callable[[ReasoningStep], Any] | None = None,
-) -> AgentState:
-    """Run the agent using Claude tool_use."""
-    from app.services.claude_client import get_client, SONNET
-
-    # Convert tool defs to Claude format
-    claude_tools = []
-    for tool_def in AGENT_TOOLS:
-        claude_tools.append({
-            "name": tool_def["name"],
-            "description": tool_def["description"],
-            "input_schema": tool_def.get("parameters", {"type": "object", "properties": {}}),
-        })
-
-    client = get_client()
-    state = AgentState(
-        pdf_bytes=pdf_bytes,
-        dietary_preferences=dietary_preferences or [],
-    )
-
-    pref_text = ""
-    if dietary_preferences:
-        pref_text = f"\n\nDietary preferences: {', '.join(dietary_preferences)}"
-
-    messages: list[dict[str, Any]] = [
+def _build_groq_tools() -> list[dict[str, Any]]:
+    """Convert AGENT_TOOLS to OpenAI/Groq function-calling format."""
+    return [
         {
-            "role": "user",
-            "content": (
-                f"I've uploaded a lab report PDF ({len(pdf_bytes):,} bytes). "
-                f"Please analyze it completely — extract biomarkers, detect deficiencies, "
-                f"generate explanations, recommend foods, and build an Instacart cart."
-                f"{pref_text}"
-            ),
+            "type": "function",
+            "function": {
+                "name": t["name"],
+                "description": t["description"],
+                "parameters": t.get("parameters", {"type": "object", "properties": {}}),
+            },
         }
+        for t in AGENT_TOOLS
     ]
 
-    step_number = 0
-
-    for iteration in range(MAX_ITERATIONS):
-        logger.info("Agent iteration %d/%d", iteration + 1, MAX_ITERATIONS)
-
-        response = client.messages.create(
-            model=SONNET,
-            max_tokens=4096,
-            system=AGENT_SYSTEM_PROMPT,
-            tools=claude_tools,
-            messages=messages,
-        )
-
-        tool_uses = []
-        text_parts = []
-
-        for block in response.content:
-            if block.type == "text":
-                text_parts.append(block.text)
-                step_number += 1
-                step = ReasoningStep(
-                    step_number=step_number,
-                    action="reasoning",
-                    reasoning=block.text,
-                    timestamp=time.time(),
-                )
-                state.reasoning_steps.append(step)
-                if on_step:
-                    on_step(step)
-
-            elif block.type == "tool_use":
-                tool_uses.append(block)
-
-        if not tool_uses:
-            logger.info("Agent finished — no more tool calls")
-            break
-
-        tool_results = []
-        for tool_use in tool_uses:
-            step_number += 1
-            logger.info("Agent calling tool: %s", tool_use.name)
-
-            result_str = await _execute_tool(tool_use.name, tool_use.input, state)
-            result_data = json.loads(result_str)
-            summary = _summarize_result(tool_use.name, result_data)
-
-            step = ReasoningStep(
-                step_number=step_number,
-                action="tool_call",
-                tool_name=tool_use.name,
-                reasoning=f"Calling {tool_use.name}",
-                result_summary=summary,
-                timestamp=time.time(),
-            )
-            state.reasoning_steps.append(step)
-            if on_step:
-                on_step(step)
-
-            tool_results.append({
-                "type": "tool_result",
-                "tool_use_id": tool_use.id,
-                "content": result_str,
-            })
-
-        messages.append({"role": "assistant", "content": response.content})
-        messages.append({"role": "user", "content": tool_results})
-
-    else:
-        logger.warning("Agent hit max iterations (%d)", MAX_ITERATIONS)
-
-    return state
-
-
-# ---------------------------------------------------------------------------
-# Public API — routes to the correct provider
-# ---------------------------------------------------------------------------
 
 async def run_agent(
     pdf_bytes: bytes,
@@ -642,9 +386,7 @@ async def run_agent(
     on_step: Callable[[ReasoningStep], Any] | None = None,
 ) -> AgentState:
     """
-    Run the NutriScan AI Agent.
-
-    Uses Gemini by default, Claude if AI_PROVIDER=claude.
+    Run the NutriScan AI Agent using Groq (Llama 3.3 70B).
 
     Args:
         pdf_bytes: Raw PDF file bytes.
@@ -654,12 +396,111 @@ async def run_agent(
     Returns:
         AgentState with all accumulated results.
     """
-    if settings.AI_PROVIDER == "claude":
-        logger.info("Running agent with Claude")
-        return await _run_agent_claude(pdf_bytes, dietary_preferences, on_step)
+    from app.services.gemini_client import tool_chat_with_fallback
+
+    state = AgentState(
+        pdf_bytes=pdf_bytes,
+        dietary_preferences=dietary_preferences or [],
+    )
+
+    pref_text = ""
+    if dietary_preferences:
+        pref_text = f"\n\nDietary preferences: {', '.join(dietary_preferences)}"
+
+    tools = _build_groq_tools()
+
+    messages: list[dict[str, Any]] = [
+        {"role": "system", "content": AGENT_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": (
+                f"I've uploaded a lab report PDF ({len(pdf_bytes):,} bytes). "
+                f"Please analyze it completely — extract biomarkers, detect deficiencies, "
+                f"generate explanations, recommend foods, and build a Walmart cart."
+                f"{pref_text}"
+            ),
+        },
+    ]
+
+    step_number = 0
+
+    for iteration in range(MAX_ITERATIONS):
+        logger.info("Agent iteration %d/%d", iteration + 1, MAX_ITERATIONS)
+
+        response = await tool_chat_with_fallback(
+            messages=messages,
+            tools=tools,
+            tool_choice="auto",
+            max_tokens=1024,
+        )
+
+        msg = response.choices[0].message
+
+        # Capture any text reasoning
+        if msg.content:
+            step_number += 1
+            step = ReasoningStep(
+                step_number=step_number,
+                action="reasoning",
+                reasoning=msg.content,
+                timestamp=time.time(),
+            )
+            state.reasoning_steps.append(step)
+            if on_step:
+                on_step(step)
+
+        # No tool calls → agent is done
+        if not msg.tool_calls:
+            logger.info("Agent finished — no more tool calls")
+            break
+
+        # Append assistant message with tool calls to history.
+        # Convert to plain dict and drop `reasoning`/`reasoning_content` so
+        # thinking models (Scout, Qwen3) don't trigger a 400 on the next turn.
+        assistant_msg: dict[str, Any] = {"role": "assistant", "content": msg.content or ""}
+        if msg.tool_calls:
+            assistant_msg["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {"name": tc.function.name, "arguments": tc.function.arguments},
+                }
+                for tc in msg.tool_calls
+            ]
+        messages.append(assistant_msg)
+
+        # Execute each tool call
+        for tc in msg.tool_calls:
+            step_number += 1
+            logger.info("Agent calling tool: %s", tc.function.name)
+
+            tool_args = json.loads(tc.function.arguments or "{}") or {}
+            result_str = await _execute_tool(tc.function.name, tool_args, state)
+            result_data = json.loads(result_str)
+            summary = _summarize_result(tc.function.name, result_data)
+
+            step = ReasoningStep(
+                step_number=step_number,
+                action="tool_call",
+                tool_name=tc.function.name,
+                reasoning=f"Calling {tc.function.name}",
+                result_summary=summary,
+                timestamp=time.time(),
+            )
+            state.reasoning_steps.append(step)
+            if on_step:
+                on_step(step)
+
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tc.id,
+                "content": result_str,
+            })
+
     else:
-        logger.info("Running agent with Gemini")
-        return await _run_agent_gemini(pdf_bytes, dietary_preferences, on_step)
+        logger.warning("Agent hit max iterations (%d)", MAX_ITERATIONS)
+
+    return state
 
 
 # ---------------------------------------------------------------------------
@@ -691,8 +532,8 @@ def _summarize_result(tool_name: str, result: dict) -> str:
         "recommend_foods": (
             f"🥗 Recommended {result.get('recommendation_count', 0)} foods/supplements"
         ),
-        "build_instacart_cart": (
-            f"🛒 Built cart with {result.get('cart_item_count', 0)} items"
+        "build_shopping_carts": (
+            f"🛒 Built shopping carts for multiple marketplaces"
         ),
     }
 

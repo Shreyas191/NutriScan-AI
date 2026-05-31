@@ -17,23 +17,12 @@ const navLinks = [
     { href: "/cart", label: "Cart", icon: ShoppingCart },
 ];
 
-// Dynamically import Clerk components — they may not be available if
-// ClerkProvider is not mounted (e.g. build without publishable key)
-let SignedIn: React.ComponentType<{ children: React.ReactNode }> | null = null;
-let SignedOut: React.ComponentType<{ children: React.ReactNode }> | null = null;
-let UserButton: React.ComponentType<Record<string, unknown>> | null = null;
-let SignInButton: React.ComponentType<{ mode: string; children: React.ReactNode }> | null = null;
-
-const clerkAvailable = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-if (clerkAvailable) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const clerk = require("@clerk/nextjs");
-    SignedIn = clerk.SignedIn;
-    SignedOut = clerk.SignedOut;
-    UserButton = clerk.UserButton;
-    SignInButton = clerk.SignInButton;
-}
+import {
+    SignedIn,
+    SignedOut,
+    UserButton,
+    SignInButton,
+} from "@clerk/nextjs";
 
 export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -114,31 +103,23 @@ export default function Navbar() {
                     ))}
 
                     {/* Auth */}
-                    {clerkAvailable && SignedOut && SignedIn && SignInButton && UserButton ? (
-                        <>
-                            <SignedOut>
-                                <SignInButton mode="modal">
-                                    <button className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
-                                        Sign In
-                                    </button>
-                                </SignInButton>
-                            </SignedOut>
-                            <SignedIn>
-                                <UserButton
-                                    afterSignOutUrl="/"
-                                    appearance={{
-                                        elements: {
-                                            avatarBox: { width: 34, height: 34 },
-                                        },
-                                    }}
-                                />
-                            </SignedIn>
-                        </>
-                    ) : (
-                        <Link href="/sign-in" className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
-                            Sign In
-                        </Link>
-                    )}
+                    <SignedOut>
+                        <SignInButton mode="modal">
+                            <button className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
+                                Sign In
+                            </button>
+                        </SignInButton>
+                    </SignedOut>
+                    <SignedIn>
+                        <UserButton
+                            afterSignOutUrl="/"
+                            appearance={{
+                                elements: {
+                                    avatarBox: { width: 34, height: 34 },
+                                },
+                            }}
+                        />
+                    </SignedIn>
                 </div>
 
                 {/* Mobile toggle */}
@@ -191,29 +172,21 @@ export default function Navbar() {
                     ))}
 
                     {/* Mobile auth */}
-                    {clerkAvailable && SignedOut && SignedIn && SignInButton && UserButton ? (
-                        <>
-                            <SignedOut>
-                                <SignInButton mode="modal">
-                                    <button className="btn-primary" style={{ marginTop: 8 }}>
-                                        Sign In
-                                    </button>
-                                </SignInButton>
-                            </SignedOut>
-                            <SignedIn>
-                                <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
-                                    <UserButton afterSignOutUrl="/" />
-                                    <span style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                                        Account
-                                    </span>
-                                </div>
-                            </SignedIn>
-                        </>
-                    ) : (
-                        <Link href="/sign-in" className="btn-primary" style={{ marginTop: 8 }}>
-                            Sign In
-                        </Link>
-                    )}
+                    <SignedOut>
+                        <SignInButton mode="modal">
+                            <button className="btn-primary" style={{ marginTop: 8 }}>
+                                Sign In
+                            </button>
+                        </SignInButton>
+                    </SignedOut>
+                    <SignedIn>
+                        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}>
+                            <UserButton afterSignOutUrl="/" />
+                            <span style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+                                Account
+                            </span>
+                        </div>
+                    </SignedIn>
                 </div>
             )}
         </nav>

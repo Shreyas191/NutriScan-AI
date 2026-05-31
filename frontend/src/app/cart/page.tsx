@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ShoppingCart, ExternalLink, Sparkles, Loader2, AlertTriangle } from "lucide-react";
+import { ShoppingCart, ExternalLink, Sparkles, Loader2, AlertTriangle, Check } from "lucide-react";
 import CartItem from "@/components/CartItem";
 import { getReport, type CartItem as CartItemType } from "@/lib/api";
 
@@ -20,12 +20,18 @@ export default function CartPage() {
     );
 }
 
+const MARKETPLACES = [
+    { id: "walmart", name: "Walmart", icon: "🥕" },
+    { id: "amazon", name: "Amazon", icon: "📦" },
+];
+
 function CartPageInner() {
     const searchParams = useSearchParams();
     const reportId = searchParams.get("id");
 
     const [cart, setCart] = useState<CartItemType[]>([]);
-    const [shopAllUrl, setShopAllUrl] = useState("");
+    const [shopLinks, setShopLinks] = useState<Record<string, string>>({});
+    const [selectedMarketplace, setSelectedMarketplace] = useState("walmart");
     const [loading, setLoading] = useState(!!reportId);
     const [error, setError] = useState(
         reportId ? "" : "No report ID. Please upload a lab report first."
@@ -39,7 +45,7 @@ function CartPageInner() {
             .then((data) => {
                 if (!cancelled) {
                     setCart(data.cart_items);
-                    setShopAllUrl(data.shop_all_url);
+                    setShopLinks(data.shopping_links || { walmart: data.shop_all_url });
                 }
             })
             .catch((err) => {
@@ -59,6 +65,8 @@ function CartPageInner() {
 
     // Group by nutrient
     const nutrients = [...new Set(cart.map((i) => i.nutrient))];
+
+    const currentShopUrl = shopLinks[selectedMarketplace] || "";
 
     if (loading) {
         return (
@@ -93,8 +101,36 @@ function CartPageInner() {
                     <h1 style={{ fontSize: "1.6rem", fontWeight: 700 }}>Your Grocery Cart</h1>
                 </div>
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-                    {cart.length} items based on your deficiency analysis · Edit before checkout
+                    {cart.length} items based on your deficiency analysis · Select your preferred store
                 </p>
+            </div>
+
+            {/* Marketplace Selector */}
+            <div style={{ marginBottom: 32, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {MARKETPLACES.map((m) => {
+                    const active = selectedMarketplace === m.id;
+                    return (
+                        <button
+                            key={m.id}
+                            onClick={() => setSelectedMarketplace(m.id)}
+                            className={active ? "btn-primary" : "btn-secondary"}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "10px 20px",
+                                borderRadius: "var(--radius-lg)",
+                                border: active ? "none" : "1px solid var(--border-default)",
+                                cursor: "pointer",
+                                transition: "all 0.2s ease",
+                            }}
+                        >
+                            <span>{m.icon}</span>
+                            <span style={{ fontWeight: 600 }}>{m.name}</span>
+                            {active && <Check size={16} />}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Category groups */}
@@ -116,17 +152,25 @@ function CartPageInner() {
                             {nutrient} Foods
                         </h2>
                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                            {items.map((item) => (
-                                <CartItem
-                                    key={item.id}
-                                    name={item.name}
-                                    emoji={item.emoji}
-                                    category={item.nutrient}
-                                    quantity={item.quantity}
-                                    onRemove={() => remove(item.id)}
-                                    onQuantityChange={(qty) => updateQty(item.id, qty)}
-                                />
-                            ))}
+                            {items.map((item) => {
+                                // Fallback for direct item link if needed
+                                const itemLink = item.links?.[selectedMarketplace] ||
+                                    (selectedMarketplace === "walmart" ? item.walmart_url : "");
+
+                                return (
+                                    <div key={item.id} style={{ position: "relative" }}>
+                                        <CartItem
+                                            name={item.name}
+                                            emoji={item.emoji}
+                                            category={item.nutrient}
+                                            quantity={item.quantity}
+                                            href={itemLink || undefined}
+                                            onRemove={() => remove(item.id)}
+                                            onQuantityChange={(qty) => updateQty(item.id, qty)}
+                                        />
+                                    </div>
+                                );
+                            })}
                         </div>
                     </section>
                 );
@@ -164,21 +208,115 @@ function CartPageInner() {
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <Sparkles size={18} color="var(--accent-start)" />
                         <span style={{ fontWeight: 600 }}>
-                            Ready to shop — {cart.length} items
+                            Ready to shop on {MARKETPLACES.find(m => m.id === selectedMarketplace)?.name}
                         </span>
                     </div>
-                    <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", maxWidth: 400 }}>
-                        Click below to open your personalized Instacart shopping list with all items ready to add to cart.
+
+                    {currentShopUrl ? (
+                        <>
+                            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", maxWidth: 400 }}>
+                                Click below to open your personalized shopping list with all items ready to add.
+                            </p>
+                            <a
+                                href={currentShopUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn-primary"
+                                style={{ fontSize: "1rem", padding: "14px 36px" }}
+                            >
+                                Shop on {MARKETPLACES.find(m => m.id === selectedMarketplace)?.name} <ExternalLink size={16} />
+                            </a>
+                        </>
+                    ) : (
+                        <p style={{ color: "var(--severity-warning)", fontSize: "0.9rem" }}>
+                            Shopping link unavailable for {MARKETPLACES.find(m => m.id === selectedMarketplace)?.name}
+                        </p>
+                    )}
+
+                    {/* Auto-Shop Section */}
+                    <div style={{ marginTop: 24, width: "100%", borderTop: "1px solid var(--border-default)", paddingTop: 24 }}>
+                        <AutoShopSection items={cart.map(c => c.name)} retailer={selectedMarketplace} />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function AutoShopSection({ items, retailer }: { items: string[], retailer: string }) {
+    const [mode, setMode] = useState<"idle" | "running" | "done">("idle");
+    const [logs, setLogs] = useState<string[]>([]);
+    const [expanded, setExpanded] = useState(false);
+
+    const startAutoShop = async () => {
+        setMode("running");
+        setLogs([`Starting Walmart browser agent…`, `Opening browser — complete any OTP in the browser window if prompted.`]);
+
+        try {
+            const { autoShop } = await import("@/lib/api");
+            await autoShop(items, {
+                onLog: (log) => setLogs(prev => [...prev, log]),
+                onDone: () => {
+                    setLogs(prev => [...prev, "✨ ALL TASKS COMPLETED ✨"]);
+                    setMode("done");
+                },
+                onError: (err) => setLogs(prev => [...prev, `❌ Error: ${err}`])
+            }, retailer);
+        } catch (e) {
+            setLogs(prev => [...prev, `❌ System Error: ${e}`]);
+        }
+    };
+
+    if (!expanded) {
+        return (
+            <button
+                onClick={() => setExpanded(true)}
+                className="btn-secondary"
+                style={{ width: "100%", gap: 8, justifyContent: "center" }}
+            >
+                <Sparkles size={16} /> or enable Auto-Shop Agent
+            </button>
+        );
+    }
+
+    return (
+        <div style={{ textAlign: "left", width: "100%" }}>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                🤖 Autonomous Shopping Agent
+            </h3>
+
+            {mode === "idle" ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                        The agent will open a browser and add these {items.length} items to your Walmart cart.
+                        If Walmart asks for an OTP, enter it in the browser window — the session is saved for future runs.
                     </p>
-                    <a
-                        href={shopAllUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <button
+                        onClick={startAutoShop}
                         className="btn-primary"
-                        style={{ fontSize: "1rem", padding: "14px 36px" }}
+                        style={{ background: "var(--accent-gradient)", border: "none" }}
                     >
-                        Shop on Instacart <ExternalLink size={16} />
-                    </a>
+                        Launch Agent 🚀
+                    </button>
+                    <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", textAlign: "center" }}>
+                        Your login session is saved after the first run — no OTP needed next time.
+                    </p>
+                </div>
+            ) : (
+                <div style={{
+                    background: "#1e1e1e",
+                    color: "#00ff00",
+                    fontFamily: "monospace",
+                    padding: 16,
+                    borderRadius: 8,
+                    height: 300,
+                    overflowY: "auto",
+                    fontSize: "0.9rem"
+                }}>
+                    {logs.map((log, i) => (
+                        <div key={i} style={{ marginBottom: 4 }}>{"> "}{log}</div>
+                    ))}
+                    {mode === "running" && <div style={{ animation: "blink 1s infinite" }}>_</div>}
                 </div>
             )}
         </div>
